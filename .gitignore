@@ -1,0 +1,31 @@
+# Ignore everything in the root directory
+*
+
+# Unignore all directories recursively
+!/**/
+
+# Re-ignore directories that we don't want to see
+/.gradle
+/.idea
+/.vscode
+/.kotlin
+
+# Allow gitignore
+!/**/.gitignore
+
+# Allow GitHub Workflows
+!/.github/workflows/*.yaml
+
+# Allow LICENSE
+!/**/LICENSE
+
+# Allow Markdown files
+!/**/*.md
+
+# Allow version catalog
+!/gradle/libs.versions.toml
+
+# Allow Kotlin files
+!/**/src/*/kotlin/**/*.kt
+!/settings.gradle.kts
+!/**/build.gradle.kts
