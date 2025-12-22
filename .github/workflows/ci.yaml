@@ -24,7 +24,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
         with:
-          gradle-version: 9
+          gradle-version: 9.2.1
 
       - name: Build with Gradle
         run: gradle test
@@ -43,7 +43,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
         with:
-          gradle-version: 9
+          gradle-version: 9.2.1
 
       - name: Check code format with Gradle
         run: gradle ktlintCheck
@@ -64,7 +64,7 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
         with:
-          gradle-version: 9
+          gradle-version: 9.2.1
 
       - name: Publish to Maven Central
         env:
