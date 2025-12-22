@@ -42,7 +42,7 @@ subprojects {
                 sign(publishing.publications)
                 useInMemoryPgpKeys(
                     System.getenv("SIGNING_KEY_ID"),
-                    System.getenv("SIGNING_KEY"),
+                    System.getenv("SIGNING_KEY").trim() + "\n",
                     System.getenv("SIGNING_PASSWORD"),
                 )
             }
