@@ -22,10 +22,13 @@
 # Allow Markdown files
 !/**/*.md
 
-# Allow version catalog
-!/gradle/libs.versions.toml
+# Allow dprint
+!/dprint.json
 
 # Allow Kotlin files
-!/**/src/*/kotlin/**/*.kt
+!/**/src/**/*.kt
 !/settings.gradle.kts
 !/**/build.gradle.kts
+!/**/module.yaml
+!/project.yaml
+!/libs.versions.toml
