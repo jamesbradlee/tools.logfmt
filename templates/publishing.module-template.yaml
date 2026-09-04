@@ -1,0 +1,17 @@
+settings:
+  publishing:
+    enabled: true
+    group: tools.logfmt
+    version: 0.1.0
+    mavenCentral: enabled
+    signArtifacts: true
+    publishSources: true
+    pom:
+      url: https://github.com/jamesbradlee/tools.logfmt
+      scm: https://github.com/jamesbradlee/tools.logfmt
+      developers:
+        - name: James Bradlee
+          url: https://github.com/jamesbradlee
+      licenses:
+        - name: MIT
+          url: https://opensource.org/licenses/MIT
