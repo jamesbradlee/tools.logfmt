@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.3.0"
+kotlin = "2.4.10"
 logback = { strictly = "1.+", prefer = "1.5.18" }
 ktlint = "14.0.1"
 dokka = "2.1.0"

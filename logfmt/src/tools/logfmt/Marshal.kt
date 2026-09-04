@@ -55,14 +55,35 @@ private fun quoteValue(
     for (char in theValue) {
         out +=
             when (char) {
-                '"' -> "\\\""
-                '\\' -> "\\\\"
-                '\r' -> "\\r"
-                '\n' -> "\\n"
-                '\t' -> "\\t"
-                '\b' -> "\\b"
-                '\u000C' -> "\\f"
-                else ->
+                '"' -> {
+                    "\\\""
+                }
+
+                '\\' -> {
+                    "\\\\"
+                }
+
+                '\r' -> {
+                    "\\r"
+                }
+
+                '\n' -> {
+                    "\\n"
+                }
+
+                '\t' -> {
+                    "\\t"
+                }
+
+                '\b' -> {
+                    "\\b"
+                }
+
+                '\u000C' -> {
+                    "\\f"
+                }
+
+                else -> {
                     if (
                         char <= '\u001F' ||
                         (char in '\u007F'..'\u009F') ||
@@ -76,6 +97,7 @@ private fun quoteValue(
                     } else {
                         char
                     }
+                }
             }
 
         if (char.isWhitespace() || char == '=' || char == '\'') {
