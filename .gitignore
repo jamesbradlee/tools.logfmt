@@ -33,3 +33,5 @@
 !/project.yaml
 !/libs.versions.toml
 !/templates/*.module-template.yaml
+!/kotlin
+!/kotlin.bat
