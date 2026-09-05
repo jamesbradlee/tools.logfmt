@@ -1,5 +1,7 @@
 package tools.logfmt
 
+fun Testing() {}
+
 /**
  * Marshal a map of fields into a logfmt formatted string.
  *
