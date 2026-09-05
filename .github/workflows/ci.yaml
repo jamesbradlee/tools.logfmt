@@ -45,8 +45,8 @@ jobs:
           curl -fsSL -o "$path/ktlint" "$url"
           chmod a+x "$path/ktlint"
           "$path/ktlint" --version
-          "$path/ktlint" --reporter=plain-summary --reporter=sarif,output="$path/ktlint.sarif.json"
-          ok=$?
+          ok=0
+          "$path/ktlint" --reporter=plain-summary --reporter=sarif,output="$path/ktlint.sarif.json" || ok=$?
           # check if the ktlint report exists
           if [ ! -f "$path/ktlint.sarif.json" ]; then
             echo "ktlint-sarif=" >> $GITHUB_OUTPUT
@@ -68,6 +68,6 @@ jobs:
       - name: Cache Kotlin Toolchain, JDK & dependencies
         uses: actions/cache@v6
         with:
-          path: ~/.cache/JetbBrains/Kotlin
+          path: ~/.cache/JetBrains/Kotlin
           key: kotlin-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('project.yaml', '**/module.yaml', 'templates/*.module-template.yaml', 'libs.versions.toml', '.github/workflows/ci.yaml', 'kotlin', 'kotlin.bat') }}
       - run: ./kotlin test
