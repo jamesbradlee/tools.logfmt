@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - id: dprint-version
-        run: echo "value=$(cat .dprint-version)" >> $GITHUB_OUTPUT
+        run: echo "value=$(cat .dprint-version || echo "")" >> $GITHUB_OUTPUT
       - uses: dprint/check@v2.3
         with:
           dprint-version: ${{ steps.dprint-version.outputs.value }}
@@ -33,8 +33,12 @@ jobs:
           set -eo pipefail
           path="$(mktemp -d)"
           echo "using $KTLINT_VERSION"
-          url="$(curl -fsSLq -H  "Accept application/vnd.github.v3+json" "https://api.github.com/repos/ktlint/ktlint/releases/$KTLINT_VERSION" | jq -r '.assets[] | select(.name == "ktlint").browser_download_url')"
-          wget --no-verbose -O "$path/ktlint" $url
+          if [ -z "$KTLINT_VERSION" ] || [ "$KTLINT_VERSION" = "latest" ]; then
+            url="https://github.com/ktlint/ktlint/releases/latest/download/ktlint"
+          else
+            url="https://github.com/ktlint/ktlint/releases/download/$KTLINT_VERSION/ktlint"
+          fi
+          curl -fsSL -o "$path/ktlint" "$url"
           chmod a+x "$path/ktlint"
           "$path/ktlint" --version
           "$path/ktlint" --reporter=plain-summary --reporter=sarif,output="$path/ktlint.sarif.json"
