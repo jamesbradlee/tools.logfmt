@@ -1,7 +1,12 @@
 repositories:
-  - id: mavenCentral
+  - id: central
     url: https://repo1.maven.org/maven2
+    publish: false
+    resolve: true
+  - id: mavenCentral
+    url: https://central.sonatype.com
     publish: true
+    resolve: false
 
 settings:
   publishing:
