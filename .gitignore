@@ -4,12 +4,6 @@
 # Unignore all directories recursively
 !/**/
 
-# Re-ignore directories that we don't want to see
-/.gradle
-/.idea
-/.vscode
-/.kotlin
-
 # Allow gitignore
 !/**/.gitignore
 
@@ -38,3 +32,10 @@
 !/templates/*.module-template.yaml
 !/kotlin
 !/kotlin.bat
+
+# Re-ignore directories that we don't want to see
+/.gradle
+/.idea
+/.vscode
+/.kotlin
+!/build
