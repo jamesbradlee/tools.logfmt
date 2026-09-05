@@ -7,6 +7,10 @@ repositories:
     url: https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/
     publish: true
     resolve: false
+    credentials:
+      file: //publish.properties
+      usernameKey: central.username
+      passwordKey: central.password
 
 settings:
   publishing:

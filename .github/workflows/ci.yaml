@@ -84,9 +84,14 @@ jobs:
           fail-on-cache-miss: "true"
       - env:
           VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version || format('{0}-SNAPSHOT', github.sha) }}
+          CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
         run: |
           set -eo pipefail
           export VERSION="${VERSION:-0.1.0}"   # fallback if unset/empty
+          rm -rf publish.properties
+          echo "central.username=${CENTRAL_TOKEN_USERNAME}" >> publish.properties
+          echo "central.password=${CENTRAL_TOKEN_PASSWORD}" >> publish.properties
           yq -i '.settings.publishing.version = strenv(VERSION)' templates/publishing.module-template.yaml
       - env:
           KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
