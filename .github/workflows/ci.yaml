@@ -58,7 +58,13 @@ jobs:
         if: always() && steps.ktlint.outputs.ktlint-sarif != ''
         with:
           sarif_file: ${{ steps.ktlint.outputs.ktlint-sarif }}
-      - run: exit ${{ steps.ktlint.outcome == 'success' && 0 || 1 }}
+      - env:
+          OUTCOME: ${{ steps.ktlint.outcome }}
+        run: |
+          if [ "$OUTCOME" != "success" ]; then
+            echo "ktlint failed"
+            exit 1
+          fi
 
   test:
     runs-on: ubuntu-latest
