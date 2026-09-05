@@ -4,12 +4,6 @@
 # Unignore all directories recursively
 !/**/
 
-# Re-ignore directories that we don't want to see
-/.gradle
-/.idea
-/.vscode
-/.kotlin
-
 # Allow gitignore
 !/**/.gitignore
 
@@ -22,10 +16,26 @@
 # Allow Markdown files
 !/**/*.md
 
-# Allow version catalog
-!/gradle/libs.versions.toml
+# Allow dprint
+!/dprint.json
+
+# Allow version files
+!/*-version
 
 # Allow Kotlin files
-!/**/src/*/kotlin/**/*.kt
+!/**/src/**/*.kt
 !/settings.gradle.kts
 !/**/build.gradle.kts
+!/**/module.yaml
+!/project.yaml
+!/libs.versions.toml
+!/templates/*.module-template.yaml
+!/kotlin
+!/kotlin.bat
+
+# Re-ignore directories that we don't want to see
+/.gradle
+/.idea
+/.vscode
+/.kotlin
+!/build

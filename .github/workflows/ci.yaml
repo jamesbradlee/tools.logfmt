@@ -10,69 +10,101 @@ on:
         required: false
 
 jobs:
+  check-dprint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: dprint-version
+        run: echo "value=$(cat .dprint-version || echo "")" >> $GITHUB_OUTPUT
+      - uses: dprint/check@v2.3
+        with:
+          dprint-version: ${{ steps.dprint-version.outputs.value }}
+
+  check-ktlint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v5
+      - id: ktlint-version
+        run: echo "value=$(cat .ktlint-version)" >> $GITHUB_OUTPUT
+      - id: ktlint
+        env:
+          KTLINT_VERSION: ${{ steps.ktlint-version.outputs.value }}
+        run: |
+          set -eo pipefail
+          path="$(mktemp -d)"
+          echo "using $KTLINT_VERSION"
+          if [ -z "$KTLINT_VERSION" ] || [ "$KTLINT_VERSION" = "latest" ]; then
+            url="https://github.com/ktlint/ktlint/releases/latest/download/ktlint"
+          else
+            url="https://github.com/ktlint/ktlint/releases/download/$KTLINT_VERSION/ktlint"
+          fi
+          curl -fsSL -o "$path/ktlint" "$url"
+          chmod a+x "$path/ktlint"
+          "$path/ktlint" --version
+          ok=0
+          "$path/ktlint" --reporter=plain-summary --reporter=sarif,output="$path/ktlint.sarif.json" || ok=$?
+          # check if the ktlint report exists
+          if [ ! -f "$path/ktlint.sarif.json" ]; then
+            echo "ktlint-sarif=" >> $GITHUB_OUTPUT
+          else
+            echo "ktlint-sarif=$path/ktlint.sarif.json" >> $GITHUB_OUTPUT
+          fi
+          exit $ok
+      - uses: github/codeql-action/upload-sarif@v4
+        if: always() && steps.ktlint.outputs.ktlint-sarif != ''
+        with:
+          sarif_file: ${{ steps.ktlint.outputs.ktlint-sarif }}
+
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - name: Cache Kotlin Toolchain, JDK & dependencies
+        uses: actions/cache@v6
         with:
-          distribution: temurin
-          java-version: 21
+          path: ~/.cache/JetBrains/Kotlin
+          key: kotlin-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('project.yaml', '**/module.yaml', 'templates/*.module-template.yaml', 'libs.versions.toml', '.github/workflows/ci.yaml', 'kotlin', 'kotlin.bat') }}
+      - run: ./kotlin test
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: 9.2.1
-
-      - name: Build with Gradle
-        run: gradle test
-
-  format:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: 9.2.1
-
-      - name: Check code format with Gradle
-        run: gradle ktlintCheck
-
-  publish:
-    needs: [test, format]
+  release:
+    needs: [check-ktlint, check-dprint, test]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-        with:
-          gradle-version: 9.2.1
-
-      - name: Publish to Maven Central
+      - name: Import GPG signing key
         env:
-          PUBLISHING: "true"
-          VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version || format('{0}-SNAPSHOT', github.sha) }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          set -eo pipefail
+          echo "$SIGNING_KEY" | gpg --batch --import
+          printf "allow-preset-passphrase\nallow-loopback-pinentry\n" > ~/.gnupg/gpg-agent.conf
+          gpg-connect-agent reloadagent /bye
+          preset="$(gpgconf --list-dirs libexecdir)/gpg-preset-passphrase"
+          gpg --batch --with-colons --with-keygrip --list-secret-keys \
+            | awk -F: '/^grp:/ {print $10}' \
+            | while read -r grip; do
+                echo "$SIGNING_PASSWORD" | "$preset" --preset "$grip"
+              done
+      - name: Cache Kotlin Toolchain, JDK & dependencies
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cache/JetBrains/Kotlin
+          key: kotlin-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('project.yaml', '**/module.yaml', 'templates/*.module-template.yaml', 'libs.versions.toml', '.github/workflows/ci.yaml', 'kotlin', 'kotlin.bat') }}
+          fail-on-cache-miss: "true"
+      - env:
+          VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version || format('{0}-SNAPSHOT', github.sha) }}
+        run: |
+          set -eo pipefail
+          export VERSION="${VERSION:-0.1.0}"   # fallback if unset/empty
+          yq -i '.settings.publishing.version = strenv(VERSION)' templates/publishing.module-template.yaml
+      - env:
+          KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY_ID }}
           CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
-        run: gradle -x test publish
+        run: ./kotlin publish

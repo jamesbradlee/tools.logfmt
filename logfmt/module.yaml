@@ -1,0 +1,10 @@
+product: jvm/lib
+
+description: Logfmt marshaling library
+
+test-dependencies:
+  - $kotlin.test
+
+apply:
+  - //templates/kotlin.module-template.yaml
+  - //templates/publishing.module-template.yaml

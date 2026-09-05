@@ -1,0 +1,9 @@
+[versions]
+logback = "1.6.3"
+dokka = "2.1.0"
+
+[plugins]
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+
+[libraries]
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
