@@ -37,7 +37,7 @@ jobs:
           wget --no-verbose -O "$path/ktlint" $url
           chmod a+x "$path/ktlint"
           "$path/ktlint" --version
-          ktlint --reporter=plain-summary --reporter=sarif,output="$path/ktlint.sarif.json"
+          "$path/ktlint" --reporter=plain-summary --reporter=sarif,output="$path/ktlint.sarif.json"
           ok=$?
           # check if the ktlint report exists
           if [ ! -f "$path/ktlint.sarif.json" ]; then
