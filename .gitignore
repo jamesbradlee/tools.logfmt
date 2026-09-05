@@ -25,6 +25,9 @@
 # Allow dprint
 !/dprint.json
 
+# Allow version files
+!/*-version
+
 # Allow Kotlin files
 !/**/src/**/*.kt
 !/settings.gradle.kts

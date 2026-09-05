@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The snapshot version to publish. Defaults to the commit SHA and -SNAPSHOT suffix.
+        required: false
+
+jobs:
+  check-dprint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: dprint-version
+        run: echo "value=$(cat .dprint-version)" >> $GITHUB_OUTPUT
+      - uses: dprint/check@v2.3
+        with:
+          dprint-version: ${{ steps.dprint-version.outputs.value }}
+
+  check-ktlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: ktlint-version
+        run: echo "value=$(cat .ktlint-version)" >> $GITHUB_OUTPUT
+      - id: ktlint
+        env:
+          KTLINT_VERSION: ${{ steps.ktlint-version.outputs.value }}
+        run: |
+          path="$(mktemp -d)"
+          url="$(curl -fsSLq -H  "Accept application/vnd.github.v3+json" "https://api.github.com/repos/pinterest/ktlint/releases/$KTLINT_VERSION" | jq -r '.assets[] | select(.name == "ktlint").browser_download_url')"
+          wget --no-verbose -O "$path/ktlint" $url
+          chmod a+x "$path/ktlint"
+          "$path/ktlint" --version
+          ktlint --reporter=plain-summary --reporter=sarif,output="$path/ktlint.sarif.json"
+          ok=$?
+          # check if the ktlint report exists
+          if [ ! -f "$path/ktlint.sarif.json" ]; then
+            echo "ktlint-sarif=" >> $GITHUB_OUTPUT
+          else
+            echo "ktlint-sarif=$path/ktlint.sarif.json" >> $GITHUB_OUTPUT
+          fi
+          exit $ok
+      - uses: github/codeql-action/upload-sarif@v4
+        if: always() && steps.ktlint.outputs.ktlint-sarif != ''
+        with:
+          sarif_file: ${{ steps.ktlint.outputs.ktlint-sarif }}
+      - if: steps.ktlint.outcome != 'success'
+        run: exit 1
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Cache Kotlin Toolchain, JDK & dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/JetbBrains/Kotlin
+          key: kotlin-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('project.yaml', '**/module.yaml', 'templates/*.module-template.yaml', 'libs.versions.toml', '.github/workflows/ci.yaml', 'kotlin', 'kotlin.bat') }}
+      - run: ./kotlin test
