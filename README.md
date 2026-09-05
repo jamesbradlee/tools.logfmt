@@ -98,5 +98,6 @@ logger.info("The weather is %s", v("weather", "sunny"))
 // The weather is sunny
 ```
 
-Using the structured arguments will require that the arguments section is enabled in the encoder configuration, either
-by using the `<default />` tag or by explicitly adding the `<arguments>` section.
+Using the structured arguments will require that the arguments section is
+enabled in the encoder configuration, either by using the `<default />` tag or
+by explicitly adding the `<arguments>` section.
