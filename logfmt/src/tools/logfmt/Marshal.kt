@@ -1,7 +1,7 @@
 package tools.logfmt
 
-import kotlin.collections.iterator
-import kotlin.text.iterator
+fun Testing() {
+}
 
 /**
  * Marshal a map of fields into a logfmt formatted string.
