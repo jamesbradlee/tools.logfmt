@@ -1,10 +1,15 @@
+repositories:
+  - id: mavenCentral
+    url: https://repo1.maven.org/maven2
+    publish: true
+
 settings:
   publishing:
     enabled: true
     group: tools.logfmt
     version: 0.1.0
-    mavenCentral:
-      enabled: true
+    # mavenCentral:
+    #   enabled: true
     signArtifacts: true
     publishSources: true
     pom:
