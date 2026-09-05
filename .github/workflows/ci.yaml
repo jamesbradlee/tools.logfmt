@@ -69,3 +69,42 @@ jobs:
           path: ~/.cache/JetBrains/Kotlin
           key: kotlin-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('project.yaml', '**/module.yaml', 'templates/*.module-template.yaml', 'libs.versions.toml', '.github/workflows/ci.yaml', 'kotlin', 'kotlin.bat') }}
       - run: ./kotlin test
+
+  release:
+    needs: [check-ktlint, check-dprint, test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v5
+      - name: Import GPG signing key
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          set -eo pipefail
+          echo "$SIGNING_KEY" | gpg --batch --import
+          printf "allow-preset-passphrase\nallow-loopback-pinentry\n" > ~/.gnupg/gpg-agent.conf
+          gpg-connect-agent reloadagent /bye
+          preset="$(gpgconf --list-dirs libexecdir)/gpg-preset-passphrase"
+          gpg --batch --with-colons --with-keygrip --list-secret-keys \
+            | awk -F: '/^grp:/ {print $10}' \
+            | while read -r grip; do
+                echo "$SIGNING_PASSWORD" | "$preset" --preset "$grip"
+              done
+      - name: Cache Kotlin Toolchain, JDK & dependencies
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cache/JetBrains/Kotlin
+          key: kotlin-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('project.yaml', '**/module.yaml', 'templates/*.module-template.yaml', 'libs.versions.toml', '.github/workflows/ci.yaml', 'kotlin', 'kotlin.bat') }}
+          fail-on-cache-miss: "true"
+      - env:
+          VERSION: ${{ github.event_name == 'push' && github.ref_name || inputs.version || format('{0}-SNAPSHOT', github.sha) }}
+        run: |
+          set -eo pipefail
+          export VERSION="${VERSION:-0.1.0}"   # fallback if unset/empty
+          yq -i '.settings.publishing.version = strenv(VERSION)' templates/publishing.module-template.yaml
+      - env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+        run: ./kotlin publish
