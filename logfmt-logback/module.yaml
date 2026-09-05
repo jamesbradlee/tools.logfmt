@@ -4,9 +4,7 @@ description: Logfmt for Logback
 
 dependencies:
   - //logfmt
-  - ch.qos.logback:logback-classic:1.5.18:
-      exported: true
-      scope: all
+  - $libs.logback.classic
 
 apply:
   - //templates/kotlin.module-template.yaml

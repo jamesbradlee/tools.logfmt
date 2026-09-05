@@ -104,7 +104,7 @@ jobs:
           export VERSION="${VERSION:-0.1.0}"   # fallback if unset/empty
           yq -i '.settings.publishing.version = strenv(VERSION)' templates/publishing.module-template.yaml
       - env:
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY_ID }}
           CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
         run: ./kotlin publish
