@@ -107,4 +107,4 @@ jobs:
           KOTLIN_TOOLCHAIN_SIGNING_KEY: ${{ secrets.SIGNING_KEY_ID }}
           CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           CENTRAL_TOKEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
-        run: ./kotlin publish
+        run: ./kotlin publish mavenCentral
