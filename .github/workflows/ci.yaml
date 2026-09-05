@@ -30,7 +30,9 @@ jobs:
         env:
           KTLINT_VERSION: ${{ steps.ktlint-version.outputs.value }}
         run: |
+          set -eo pipefail
           path="$(mktemp -d)"
+          echo "using $KTLINT_VERSION"
           url="$(curl -fsSLq -H  "Accept application/vnd.github.v3+json" "https://api.github.com/repos/ktlint/ktlint/releases/$KTLINT_VERSION" | jq -r '.assets[] | select(.name == "ktlint").browser_download_url')"
           wget --no-verbose -O "$path/ktlint" $url
           chmod a+x "$path/ktlint"
