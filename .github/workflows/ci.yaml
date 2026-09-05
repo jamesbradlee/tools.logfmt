@@ -22,6 +22,10 @@ jobs:
 
   check-ktlint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
     steps:
       - uses: actions/checkout@v5
       - id: ktlint-version
